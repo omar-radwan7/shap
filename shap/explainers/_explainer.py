@@ -4,8 +4,8 @@ import copy
 import time
 from typing import TYPE_CHECKING, Any, Literal
 
+import narwhals as nw
 import numpy as np
-import pandas as pd
 import scipy.sparse
 
 from .. import explainers, links, maskers, models
@@ -99,7 +99,8 @@ class Explainer(Serializable):
         self.feature_names = feature_names
 
         # wrap the incoming masker object as a shap.Masker object
-        if isinstance(masker, pd.DataFrame) or (
+        masker = nw.from_native(masker, eager_only=True, pass_through=True)
+        if isinstance(masker, nw.DataFrame) or (
             (isinstance(masker, np.ndarray) or scipy.sparse.issparse(masker)) and len(masker.shape) == 2
         ):
             if algorithm == "partition":
@@ -345,7 +346,8 @@ class Explainer(Serializable):
                     pass
 
             # convert DataFrames to numpy arrays
-            if isinstance(args[i], pd.DataFrame):
+            args[i] = nw.from_native(args[i], eager_only=True, pass_through=True)  # type: ignore[index]
+            if isinstance(args[i], nw.DataFrame):
                 feature_names[i] = list(args[i].columns)  # type: ignore[call-overload, index]
                 args[i] = args[i].to_numpy()  # type: ignore[index]
 
